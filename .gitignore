@@ -11,6 +11,8 @@ precheck-results/
 .env.development.local
 .env.test.local
 .env.production.local
+.opencode/
+.agy
 
 .vscode/
 .vite/
