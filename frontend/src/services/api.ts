@@ -35,7 +35,7 @@ export interface RoundSnapshot {
 
 export interface RoomSnapshot {
   code: string;
-  status: "lobby" | "active";
+  status: "lobby" | "active" | "result";
   hostId: string;
   participants: Participant[];
   currentRound: RoundSnapshot | null;
@@ -107,9 +107,15 @@ export const api = {
     });
   },
   submitGuess(code: string, participantId: string, text: string) {
-    return request<{ guess: Guess; isCorrect: boolean; score: number }>(`/rooms/${encodeURIComponent(code)}/guess`, {
+    return request<{ guess: Guess; isCorrect: boolean; score: number; roundComplete: boolean }>(`/rooms/${encodeURIComponent(code)}/guess`, {
       method: "POST",
       body: JSON.stringify({ participantId, text })
+    });
+  },
+  restartGame(code: string, participantId: string) {
+    return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/restart`, {
+      method: "POST",
+      body: JSON.stringify({ participantId })
     });
   }
 };

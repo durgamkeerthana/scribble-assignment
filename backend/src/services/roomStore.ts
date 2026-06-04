@@ -194,7 +194,28 @@ export function clearCanvas(code: string, participantId: string): Stroke[] {
   return [];
 }
 
-export function submitGuess(code: string, participantId: string, text: string): { guess: Guess; isCorrect: boolean; score: number } {
+export function restartGame(code: string, participantId: string): RoomSnapshot {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, `Room ${code} not found`);
+  }
+
+  if (room.hostId !== participantId) {
+    throw new HttpError(403, "Only the host can restart the game");
+  }
+
+  room.status = "lobby";
+  room.rounds = [];
+  room.currentRoundNumber = 0;
+  room.scores = {};
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return toRoomSnapshot(cloneRoom(room), participantId);
+}
+
+export function submitGuess(code: string, participantId: string, text: string): { guess: Guess; isCorrect: boolean; score: number; roundComplete: boolean } {
   const room = rooms.get(code);
 
   if (!room) {
@@ -234,8 +255,13 @@ export function submitGuess(code: string, participantId: string, text: string): 
 
   round.guesses.push(guess);
 
+  let roundComplete = false;
+
   if (isCorrect && !alreadyCorrect) {
     room.scores[participantId] = (room.scores[participantId] ?? 0) + 100;
+    round.status = "complete";
+    room.status = "result";
+    roundComplete = true;
   }
 
   room.updatedAt = now();
@@ -244,7 +270,8 @@ export function submitGuess(code: string, participantId: string, text: string): 
   return {
     guess,
     isCorrect,
-    score: room.scores[participantId] ?? 0
+    score: room.scores[participantId] ?? 0,
+    roundComplete
   };
 }
 
@@ -262,7 +289,7 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
       ? {
           roundNumber: currentRound.roundNumber,
           drawerId: currentRound.drawerId,
-          secretWord: viewerParticipantId === currentRound.drawerId
+          secretWord: currentRound.status === "complete" || viewerParticipantId === currentRound.drawerId
             ? currentRound.secretWord
             : null,
           status: currentRound.status,

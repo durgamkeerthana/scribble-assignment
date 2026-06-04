@@ -34,6 +34,10 @@ export function GamePage() {
           navigate("/", { replace: true });
           return;
         }
+        if (updatedRoom.status === "lobby") {
+          navigate("/lobby");
+          return;
+        }
         setPollingError(null);
       } catch {
         setPollingError("Polling error — will retry");
@@ -68,6 +72,76 @@ export function GamePage() {
     ? room.participants.find((p) => p.id === currentRound.drawerId)?.name ?? "Unknown"
     : null;
   const strokes = currentRound?.strokes ?? [];
+  const scores = room.scores ?? {};
+  const sortedScores = [...room.participants]
+    .map((p) => ({ name: p.name, score: scores[p.id] ?? 0 }))
+    .sort((a, b) => b.score - a.score);
+
+  const isHost = room.hostId === participantId;
+
+  async function handleRestart() {
+    if (!room || !participantId) {
+      return;
+    }
+    await roomStore.restartGame(room.code, participantId);
+    navigate("/lobby");
+  }
+
+  if (room.status === "result") {
+    return (
+      <section className="panel game-page">
+        <div className="game-page__header">
+          <div className="game-page__header-left">
+            <span className="section-kicker">Round {currentRound?.roundNumber ?? 1}</span>
+            <h1 className="game-page__title">Round Complete!</h1>
+          </div>
+          <RoomCodeBadge code={room.code} />
+        </div>
+
+        <div className="game-page__layout">
+          <aside className="game-page__sidebar game-page__sidebar--left">
+            <Card title="Final Scores">
+              <div className="scoreboard-list">
+                {sortedScores.map((entry) => (
+                  <div key={entry.name} className="scoreboard-row">
+                    <span className="scoreboard-name">{entry.name}</span>
+                    <strong className="scoreboard-value">{entry.score}</strong>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </aside>
+
+          <div className="game-page__main">
+            <Card title="The Word Was">
+              <p className="secret-word-display">
+                {currentRound?.secretWord ?? "Unknown"}
+              </p>
+            </Card>
+
+            <Card title="Canvas">
+              <Canvas strokes={strokes} isDrawer={false} />
+            </Card>
+          </div>
+
+          <aside className="game-page__sidebar game-page__sidebar--right">
+            <GuessHistory />
+          </aside>
+        </div>
+
+        <div className="button-row">
+          {isHost ? (
+            <button className="button button--primary" onClick={handleRestart}>
+              Restart Game
+            </button>
+          ) : null}
+          <button className="button button--secondary" onClick={() => navigate("/lobby")}>
+            Exit Game
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="panel game-page">

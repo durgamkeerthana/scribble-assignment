@@ -1,5 +1,5 @@
 export type ParticipantRole = "drawer" | "guesser";
-export type RoomStatus = "lobby" | "active";
+export type RoomStatus = "lobby" | "active" | "result";
 export type RoundStatus = "drawing" | "complete";
 
 export interface Point {

@@ -120,6 +120,12 @@ class RoomStore {
     await this.fetchRoom();
     return result;
   }
+
+  async restartGame(code: string, participantId: string) {
+    const response = await api.restartGame(code, participantId);
+    this.setRoomSnapshot(response.room);
+    return response.room;
+  }
 }
 
 const RoomStoreContext = createContext<RoomStore | null>(null);

@@ -679,3 +679,12 @@ input {
     justify-content: stretch;
   }
 }
+
+.secret-word-display {
+  font-size: 2rem;
+  text-align: center;
+  padding: 2rem;
+  background-color: #fef3c7;
+  border-radius: 8px;
+  font-weight: bold;
+}
