@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Guess, Participant, Room, RoomSnapshot, Round, Stroke } from "../models/game.js";
 import { HttpError } from "../api/schemas.js";
-import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
+import { ROUND_TIMER_SECONDS, STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
 
 const rooms = new Map<string, Room>();
 
@@ -38,7 +38,8 @@ function createParticipant(name?: string): Participant {
   return {
     id: randomUUID(),
     name: displayName(name),
-    joinedAt: now()
+    joinedAt: now(),
+    lastPollAt: 0
   };
 }
 
@@ -90,9 +91,63 @@ export function joinRoom(code: string, playerName?: string) {
   };
 }
 
-export function getRoom(code: string) {
+const HOST_MIGRATION_TIMEOUT_MS = 6_000;
+
+function checkHostMigration(room: Room): void {
+  const now = Date.now();
+  const host = room.participants.find((p) => p.id === room.hostId);
+  if (!host) return;
+
+  if (host.lastPollAt > 0 && now - host.lastPollAt < HOST_MIGRATION_TIMEOUT_MS) {
+    return;
+  }
+
+  if (room.participants.length < 2) return;
+
+  const candidates = room.participants
+    .filter(
+      (p) =>
+        p.id !== room.hostId &&
+        p.lastPollAt > 0 &&
+        now - p.lastPollAt < HOST_MIGRATION_TIMEOUT_MS
+    )
+    .sort((a, b) => a.joinedAt.localeCompare(b.joinedAt));
+
+  if (candidates.length > 0) {
+    room.hostId = candidates[0].id;
+  }
+}
+
+export function getRoom(code: string, participantId?: string) {
   const room = rooms.get(code);
-  return room ? cloneRoom(room) : null;
+  if (!room) return null;
+
+  if (participantId) {
+    const participant = room.participants.find((p) => p.id === participantId);
+    if (participant) {
+      participant.lastPollAt = Date.now();
+    }
+  }
+
+  if (room.status === "active" && room.rounds.length > 0) {
+    const round = room.rounds[room.rounds.length - 1];
+    if (round.status === "drawing") {
+      const elapsed = (Date.now() - round.startedAt) / 1000;
+      if (elapsed >= ROUND_TIMER_SECONDS) {
+        round.status = "complete";
+        room.status = "result";
+        const nonDrawers = room.participants.filter((p) => p.id !== round.drawerId);
+        const correctCount = nonDrawers.filter((p) =>
+          round.guesses.some((g) => g.participantId === p.id && g.isCorrect)
+        ).length;
+        room.scores[round.drawerId] = (room.scores[round.drawerId] ?? 0) + correctCount * 50;
+      }
+    }
+  }
+
+  checkHostMigration(room);
+
+  return cloneRoom(room);
 }
 
 export function saveRoom(room: Room) {
@@ -133,7 +188,8 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
     secretWord: selectWord(roundNumber),
     status: "drawing",
     strokes: [],
-    guesses: []
+    guesses: [],
+    startedAt: Date.now()
   };
 
   room.scores = Object.fromEntries(room.participants.map((p) => [p.id, 0]));
@@ -209,13 +265,24 @@ export function restartGame(code: string, participantId: string): RoomSnapshot {
   room.rounds = [];
   room.currentRoundNumber = 0;
   room.scores = {};
+  for (const p of room.participants) {
+    p.lastPollAt = 0;
+  }
   room.updatedAt = now();
   rooms.set(room.code, room);
 
   return toRoomSnapshot(cloneRoom(room), participantId);
 }
 
-export function submitGuess(code: string, participantId: string, text: string): { guess: Guess; isCorrect: boolean; score: number; roundComplete: boolean } {
+export function submitGuess(code: string, participantId: string, text: string): {
+  guess: Guess;
+  isCorrect: boolean;
+  score: number;
+  roundComplete: boolean;
+  timeBonus: number;
+  timeToGuess: number;
+  drawerScore: number;
+} {
   const room = rooms.get(code);
 
   if (!room) {
@@ -245,23 +312,46 @@ export function submitGuess(code: string, participantId: string, text: string): 
     (g) => g.participantId === participantId && g.isCorrect
   );
 
+  const elapsedSeconds = (Date.now() - round.startedAt) / 1000;
+  const timeToGuess = Math.round(elapsedSeconds);
+  const remainingTime = Math.max(0, ROUND_TIMER_SECONDS - Math.floor(elapsedSeconds));
+  const timeBonus = (isCorrect && !alreadyCorrect) ? Math.round(50 * (remainingTime / ROUND_TIMER_SECONDS)) : 0;
+
   const guess: Guess = {
     participantId,
     participantName: participant.name,
     text: trimmed,
     isCorrect,
-    timestamp: now()
+    timestamp: now(),
+    timeToGuess
   };
 
   round.guesses.push(guess);
 
-  let roundComplete = false;
+  let score = room.scores[participantId] ?? 0;
 
   if (isCorrect && !alreadyCorrect) {
-    room.scores[participantId] = (room.scores[participantId] ?? 0) + 100;
+    room.scores[participantId] = score + 100 + timeBonus;
+    score = room.scores[participantId];
+  }
+
+  const nonDrawers = room.participants.filter((p) => p.id !== round.drawerId);
+  const allCorrect = nonDrawers.every((p) =>
+    round.guesses.some((g) => g.participantId === p.id && g.isCorrect)
+  );
+
+  let drawerScore = 0;
+  let roundComplete = false;
+
+  if (allCorrect) {
     round.status = "complete";
     room.status = "result";
     roundComplete = true;
+    const correctCount = nonDrawers.filter((p) =>
+      round.guesses.some((g) => g.participantId === p.id && g.isCorrect)
+    ).length;
+    drawerScore = correctCount * 50;
+    room.scores[round.drawerId] = (room.scores[round.drawerId] ?? 0) + drawerScore;
   }
 
   room.updatedAt = now();
@@ -270,8 +360,11 @@ export function submitGuess(code: string, participantId: string, text: string): 
   return {
     guess,
     isCorrect,
-    score: room.scores[participantId] ?? 0,
-    roundComplete
+    score,
+    roundComplete,
+    timeBonus,
+    timeToGuess,
+    drawerScore
   };
 }
 
@@ -279,6 +372,10 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
   const currentRound = room.currentRoundNumber > 0
     ? room.rounds[room.rounds.length - 1]
     : null;
+
+  const remainingTime = currentRound && currentRound.status === "drawing"
+    ? Math.max(0, ROUND_TIMER_SECONDS - Math.floor((Date.now() - currentRound.startedAt) / 1000))
+    : 0;
 
   return {
     code: room.code,
@@ -294,7 +391,8 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
             : null,
           status: currentRound.status,
           strokes: currentRound.strokes,
-          guesses: currentRound.guesses
+          guesses: currentRound.guesses,
+          remainingTime
         }
       : null,
     availableWords: listWords(),

@@ -126,8 +126,8 @@ describe("api service", () => {
 
   // --- submitGuess ---
 
-  it("submitGuess sends POST to /rooms/:code/guess with text", async () => {
-    const guessResponse = { guess: {} as Guess, isCorrect: true, score: 100, roundComplete: false };
+  it("submitGuess sends POST to /rooms/:code/guess with text and returns new fields", async () => {
+    const guessResponse = { guess: {} as Guess, isCorrect: true, score: 150, roundComplete: true, timeBonus: 50, timeToGuess: 5, drawerScore: 0 };
     mockFetch(true, guessResponse);
     const result = await api.submitGuess("ABCD", "p1", "rocket");
 
@@ -139,6 +139,9 @@ describe("api service", () => {
       })
     );
     expect(result).toEqual(guessResponse);
+    expect(result.timeBonus).toBeDefined();
+    expect(result.timeToGuess).toBeDefined();
+    expect(result.drawerScore).toBeDefined();
   });
 
   // --- restartGame ---

@@ -196,6 +196,28 @@ describe("RoomStore", () => {
     expect(store.getSnapshot().room?.status).toBe("lobby");
   });
 
+  it("fetchRoom includes remainingTime in snapshot", async () => {
+    const updatedRoom = makeRoomSnapshot({
+      status: "active",
+      currentRound: { roundNumber: 1, drawerId: "host-1", secretWord: null, status: "drawing", strokes: [], guesses: [], remainingTime: 45 },
+    });
+    store.setRoomSession({ participantId: "p1", room: makeRoomSnapshot() });
+    mockApi.fetchRoom.mockResolvedValue({ room: updatedRoom });
+    await store.fetchRoom();
+    expect(store.getSnapshot().room?.currentRound?.remainingTime).toBe(45);
+  });
+
+  it("detects hostId change via poll", async () => {
+    const originalRoom = makeRoomSnapshot({ hostId: "host-1" });
+    store.setRoomSession({ participantId: "p1", room: originalRoom });
+    const migratedRoom = makeRoomSnapshot({ hostId: "p1" });
+    mockApi.fetchRoom.mockResolvedValue({ room: migratedRoom });
+    await store.fetchRoom();
+    const snapshot = store.getSnapshot();
+    expect(snapshot.room?.hostId).toBe("p1");
+    expect(snapshot.room?.hostId).not.toBe("host-1");
+  });
+
   // --- subscribe / listener ---
 
   it("subscribe notifies listeners on state change", () => {

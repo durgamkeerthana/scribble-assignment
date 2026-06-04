@@ -52,7 +52,7 @@ export function createRoomsRouter() {
     try {
       const { code } = roomCodeParamsSchema.parse(request.params);
       const { participantId } = roomViewerQuerySchema.parse(request.query);
-      const room = getRoom(code.toUpperCase());
+      const room = getRoom(code.toUpperCase(), participantId);
 
       if (!room) {
         throw new HttpError(404, `Room ${code.toUpperCase()} not found`);
