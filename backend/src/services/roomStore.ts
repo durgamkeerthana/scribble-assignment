@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Participant, Room, RoomSnapshot } from "../models/game.js";
+import type { Participant, Room, RoomSnapshot, Round } from "../models/game.js";
 import { HttpError } from "../api/schemas.js";
 import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
 
@@ -57,6 +57,8 @@ export function createRoom(playerName?: string) {
     status: "lobby",
     hostId: participant.id,
     participants: [participant],
+    rounds: [],
+    currentRoundNumber: 0,
     createdAt: now(),
     updatedAt: now()
   };
@@ -98,6 +100,10 @@ export function saveRoom(room: Room) {
   return getRoom(room.code);
 }
 
+function selectWord(roundNumber: number): string {
+  return STARTER_WORDS[(roundNumber - 1) % STARTER_WORDS.length];
+}
+
 export function startRoom(code: string, participantId: string): RoomSnapshot {
   const room = rooms.get(code);
 
@@ -113,21 +119,49 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
     throw new HttpError(400, "At least 2 players are required to start the game");
   }
 
+  for (const participant of room.participants) {
+    if (!participant.name.trim()) {
+      throw new HttpError(400, "Player name cannot be empty");
+    }
+  }
+
+  const roundNumber = 1;
+  const round: Round = {
+    roundNumber,
+    drawerId: room.participants[0].id,
+    secretWord: selectWord(roundNumber),
+    status: "drawing"
+  };
+
+  room.rounds.push(round);
+  room.currentRoundNumber = roundNumber;
   room.status = "active";
   room.updatedAt = now();
   rooms.set(room.code, room);
 
-  return toRoomSnapshot(cloneRoom(room));
+  return toRoomSnapshot(cloneRoom(room), participantId);
 }
 
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
-  void viewerParticipantId;
+  const currentRound = room.currentRoundNumber > 0
+    ? room.rounds[room.rounds.length - 1]
+    : null;
 
   return {
     code: room.code,
     status: room.status,
     hostId: room.hostId,
     participants: room.participants.map((participant) => ({ ...participant })),
+    currentRound: currentRound
+      ? {
+          roundNumber: currentRound.roundNumber,
+          drawerId: currentRound.drawerId,
+          secretWord: viewerParticipantId === currentRound.drawerId
+            ? currentRound.secretWord
+            : null,
+          status: currentRound.status
+        }
+      : null,
     availableWords: listWords(),
     roles: [...STARTER_ROLES]
   };

@@ -1,4 +1,5 @@
 export type ParticipantRole = "drawer" | "guesser";
+export type RoundStatus = "drawing" | "complete";
 
 export interface Participant {
   id: string;
@@ -6,11 +7,19 @@ export interface Participant {
   joinedAt: string;
 }
 
+export interface RoundSnapshot {
+  roundNumber: number;
+  drawerId: string;
+  secretWord: string | null;
+  status: RoundStatus;
+}
+
 export interface RoomSnapshot {
   code: string;
   status: "lobby" | "active";
   hostId: string;
   participants: Participant[];
+  currentRound: RoundSnapshot | null;
   availableWords: string[];
   roles: ParticipantRole[];
 }
