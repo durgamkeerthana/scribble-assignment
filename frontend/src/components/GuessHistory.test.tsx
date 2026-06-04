@@ -33,7 +33,7 @@ describe("GuessHistory", () => {
     store.setRoomSession({
       participantId: "g1",
       room: makeRoomSnapshot({
-        currentRound: { roundNumber: 1, drawerId: "h1", secretWord: null, status: "drawing", strokes: [], guesses: [], remainingTime: 60 },
+        currentRound: { roundNumber: 1, drawerId: "h1", secretWord: null, status: "drawing", strokes: [], guesses: [] },
       }),
     });
     const { container, cleanup } = renderInStore(createElement(GuessHistory), store);
@@ -52,10 +52,9 @@ describe("GuessHistory", () => {
           secretWord: null,
           status: "drawing",
           strokes: [],
-          remainingTime: 60,
           guesses: [
-            { participantId: "g1", participantName: "Guesser", text: "rocket", isCorrect: true, timestamp: "t1", timeToGuess: 5 },
-            { participantId: "g2", participantName: "Loser", text: "wrong", isCorrect: false, timestamp: "t2", timeToGuess: 10 },
+            { participantId: "g1", participantName: "Guesser", text: "rocket", isCorrect: true, timestamp: "t1" },
+            { participantId: "g2", participantName: "Loser", text: "wrong", isCorrect: false, timestamp: "t2" },
           ],
         },
       }),

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "../components/Canvas";
 import { Card } from "../components/Card";
-import { GameTimer } from "../components/GameTimer";
 import { GuessForm } from "../components/GuessForm";
 import { GuessHistory } from "../components/GuessHistory";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
@@ -153,9 +152,6 @@ export function GamePage() {
             {isDrawer ? "You are the Drawer!" : "Guess the Word!"}
           </h1>
         </div>
-        {currentRound && currentRound.status === "drawing" ? (
-          <GameTimer remainingTime={currentRound.remainingTime} />
-        ) : null}
         <RoomCodeBadge code={room.code} />
       </div>
 

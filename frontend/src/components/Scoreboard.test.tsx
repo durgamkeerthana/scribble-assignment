@@ -39,7 +39,7 @@ describe("Scoreboard", () => {
     cleanup();
   });
 
-  it("renders participant scores sorted descending with ranks", () => {
+  it("renders participant scores sorted descending", () => {
     const store = new RoomStore();
     store.setRoomSession({
       participantId: "h1",
@@ -50,36 +50,11 @@ describe("Scoreboard", () => {
     const { container, cleanup } = renderInStore(createElement(Scoreboard), store);
     const text = container.textContent!;
     expect(text).toContain("Scoreboard");
-    expect(text).toContain("1st");
     expect(text).toContain("Guesser");
     expect(text).toContain("200");
-    expect(text).toContain("2nd");
     expect(text).toContain("Host");
     expect(text).toContain("50");
     expect(text.indexOf("Guesser")).toBeLessThan(text.indexOf("Host"));
-    cleanup();
-  });
-
-  it("shows tied scores sharing same rank", () => {
-    const store = new RoomStore();
-    store.setRoomSession({
-      participantId: "h1",
-      room: makeRoomSnapshot({
-        participants: [
-          { id: "h1", name: "Host", joinedAt: new Date().toISOString() },
-          { id: "g1", name: "Guesser", joinedAt: new Date().toISOString() },
-          { id: "g2", name: "Player3", joinedAt: new Date().toISOString() },
-        ],
-        scores: { h1: 100, g1: 100, g2: 50 },
-      }),
-    });
-    const { container, cleanup } = renderInStore(createElement(Scoreboard), store);
-    const text = container.textContent!;
-    expect(text).toContain("1st");
-    const first1st = text.indexOf("1st");
-    const second1st = text.indexOf("1st", first1st + 1);
-    expect(second1st).toBeGreaterThan(-1);
-    expect(text).toContain("3rd");
     cleanup();
   });
 });

@@ -16,7 +16,6 @@ export interface Guess {
   text: string;
   isCorrect: boolean;
   timestamp: string;
-  timeToGuess: number;
 }
 
 export interface Participant {
@@ -32,7 +31,6 @@ export interface RoundSnapshot {
   status: RoundStatus;
   strokes: Stroke[];
   guesses: Guess[];
-  remainingTime: number;
 }
 
 export interface RoomSnapshot {
@@ -109,7 +107,7 @@ export const api = {
     });
   },
   submitGuess(code: string, participantId: string, text: string) {
-    return request<{ guess: Guess; isCorrect: boolean; score: number; roundComplete: boolean; timeBonus: number; timeToGuess: number; drawerScore: number }>(`/rooms/${encodeURIComponent(code)}/guess`, {
+    return request<{ guess: Guess; isCorrect: boolean; score: number; roundComplete: boolean }>(`/rooms/${encodeURIComponent(code)}/guess`, {
       method: "POST",
       body: JSON.stringify({ participantId, text })
     });

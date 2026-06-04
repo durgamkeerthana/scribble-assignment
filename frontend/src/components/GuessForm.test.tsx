@@ -19,7 +19,7 @@ function makeRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot {
     status: "active",
     hostId: "h1",
     participants: [],
-    currentRound: { roundNumber: 1, drawerId: "h1", secretWord: null, status: "drawing", strokes: [], guesses: [], remainingTime: 60 },
+    currentRound: { roundNumber: 1, drawerId: "h1", secretWord: null, status: "drawing", strokes: [], guesses: [] },
     availableWords: ["rocket"],
     roles: ["drawer", "guesser"],
     scores: {},

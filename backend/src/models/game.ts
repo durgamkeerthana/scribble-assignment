@@ -17,14 +17,12 @@ export interface Guess {
   text: string;
   isCorrect: boolean;
   timestamp: string;
-  timeToGuess: number;
 }
 
 export interface Participant {
   id: string;
   name: string;
   joinedAt: string;
-  lastPollAt: number;
 }
 
 export interface Round {
@@ -34,7 +32,6 @@ export interface Round {
   status: RoundStatus;
   strokes: Stroke[];
   guesses: Guess[];
-  startedAt: number;
 }
 
 export interface Room {
@@ -56,7 +53,6 @@ export interface RoundSnapshot {
   status: RoundStatus;
   strokes: Stroke[];
   guesses: Guess[];
-  remainingTime: number;
 }
 
 export interface RoomSnapshot {

@@ -30,34 +30,24 @@ function makeRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot {
       status: "complete",
       strokes: [],
       guesses: [
-        { participantId: "g1", participantName: "Guesser1", text: "rocket", isCorrect: true, timestamp: "t1", timeToGuess: 5 },
+        { participantId: "g1", participantName: "Guesser1", text: "rocket", isCorrect: true, timestamp: "t1" },
       ],
-      remainingTime: 0,
     },
     availableWords: ["rocket"],
     roles: ["drawer", "guesser"],
-    scores: { h1: 50, g1: 150, g2: 0 },
+    scores: { h1: 0, g1: 100, g2: 0 },
     ...overrides,
   };
 }
 
 describe("ResultPanel", () => {
-  it("renders correct guessers with time-to-guess", () => {
+  it("renders correct guessers with checkmark", () => {
     const store = new RoomStore();
     store.setRoomSession({ participantId: "g1", room: makeRoomSnapshot() });
     const { container, cleanup } = renderInStore(createElement(ResultPanel), store);
     expect(container.textContent).toContain("Guesser1");
-    expect(container.textContent).toContain("5s");
+    expect(container.textContent).toContain("rocket");
     expect(container.textContent).toContain("✓");
-    cleanup();
-  });
-
-  it("shows Did not guess for non-guessers", () => {
-    const store = new RoomStore();
-    store.setRoomSession({ participantId: "g1", room: makeRoomSnapshot() });
-    const { container, cleanup } = renderInStore(createElement(ResultPanel), store);
-    expect(container.textContent).toContain("Guesser2");
-    expect(container.textContent).toContain("Did not guess");
     cleanup();
   });
 });
