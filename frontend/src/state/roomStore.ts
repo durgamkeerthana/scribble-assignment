@@ -18,7 +18,7 @@ export interface RoomState {
 
 type Listener = () => void;
 
-class RoomStore {
+export class RoomStore {
   private state: RoomState = {
     room: null,
     participantId: null,
@@ -128,7 +128,7 @@ class RoomStore {
   }
 }
 
-const RoomStoreContext = createContext<RoomStore | null>(null);
+export const RoomStoreContext = createContext<RoomStore | null>(null);
 
 export function RoomStoreProvider({ children }: PropsWithChildren) {
   const storeRef = useRef<RoomStore | null>(null);
