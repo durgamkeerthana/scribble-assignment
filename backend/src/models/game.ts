@@ -2,6 +2,23 @@ export type ParticipantRole = "drawer" | "guesser";
 export type RoomStatus = "lobby" | "active";
 export type RoundStatus = "drawing" | "complete";
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Stroke {
+  points: Point[];
+}
+
+export interface Guess {
+  participantId: string;
+  participantName: string;
+  text: string;
+  isCorrect: boolean;
+  timestamp: string;
+}
+
 export interface Participant {
   id: string;
   name: string;
@@ -13,6 +30,8 @@ export interface Round {
   drawerId: string;
   secretWord: string;
   status: RoundStatus;
+  strokes: Stroke[];
+  guesses: Guess[];
 }
 
 export interface Room {
@@ -24,6 +43,7 @@ export interface Room {
   currentRoundNumber: number;
   createdAt: string;
   updatedAt: string;
+  scores: Record<string, number>;
 }
 
 export interface RoundSnapshot {
@@ -31,6 +51,8 @@ export interface RoundSnapshot {
   drawerId: string;
   secretWord: string | null;
   status: RoundStatus;
+  strokes: Stroke[];
+  guesses: Guess[];
 }
 
 export interface RoomSnapshot {
@@ -41,6 +63,7 @@ export interface RoomSnapshot {
   currentRound: RoundSnapshot | null;
   availableWords: string[];
   roles: ParticipantRole[];
+  scores: Record<string, number>;
 }
 
 export interface RoomSessionResponse {

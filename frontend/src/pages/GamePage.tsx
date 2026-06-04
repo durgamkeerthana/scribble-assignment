@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Canvas } from "../components/Canvas";
 import { Card } from "../components/Card";
 import { GuessForm } from "../components/GuessForm";
-import { ResultPanel } from "../components/ResultPanel";
+import { GuessHistory } from "../components/GuessHistory";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
 import { Scoreboard } from "../components/Scoreboard";
 import { useRoomState, useRoomStore } from "../state/roomStore";
+import type { Stroke } from "../services/api";
 
 export function GamePage() {
   const navigate = useNavigate();
@@ -41,6 +43,20 @@ export function GamePage() {
     return () => clearInterval(interval);
   }, [navigate, roomStore]);
 
+  async function handleStrokeEnd(stroke: Stroke) {
+    if (!room || !participantId) {
+      return;
+    }
+    await roomStore.addStroke(room.code, participantId, stroke);
+  }
+
+  async function handleClear() {
+    if (!room || !participantId) {
+      return;
+    }
+    await roomStore.clearCanvas(room.code, participantId);
+  }
+
   if (!room) {
     return null;
   }
@@ -51,6 +67,7 @@ export function GamePage() {
   const drawerName = currentRound
     ? room.participants.find((p) => p.id === currentRound.drawerId)?.name ?? "Unknown"
     : null;
+  const strokes = currentRound?.strokes ?? [];
 
   return (
     <section className="panel game-page">
@@ -67,7 +84,7 @@ export function GamePage() {
       <div className="game-page__layout">
         <aside className="game-page__sidebar game-page__sidebar--left">
           <Scoreboard />
-          <ResultPanel />
+          <GuessHistory />
         </aside>
 
         <div className="game-page__main">
@@ -80,16 +97,22 @@ export function GamePage() {
                 Draw this word for the other players to guess!
               </p>
             </Card>
-          ) : (
-            <Card title="Canvas">
-              <div className="canvas-placeholder" style={{ minHeight: '500px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
-                {currentRound
-                  ? `${drawerName ?? "The drawer"} is drawing...`
-                  : "Waiting for the game to start..."
-                }
+          ) : null}
+
+          <Card title="Canvas">
+            {currentRound ? (
+              <Canvas
+                strokes={strokes}
+                isDrawer={isDrawer}
+                onStrokeEnd={isDrawer ? handleStrokeEnd : undefined}
+                onClear={isDrawer ? handleClear : undefined}
+              />
+            ) : (
+              <div className="canvas-placeholder">
+                Waiting for the game to start...
               </div>
-            </Card>
-          )}
+            )}
+          </Card>
         </div>
 
         <aside className="game-page__sidebar game-page__sidebar--right">

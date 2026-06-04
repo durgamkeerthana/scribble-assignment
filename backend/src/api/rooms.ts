@@ -1,13 +1,16 @@
 import { Router } from "express";
 import {
+  canvasClearSchema,
+  canvasStrokeSchema,
   createRoomSchema,
+  guessSubmissionSchema,
   HttpError,
   joinRoomSchema,
   roomCodeParamsSchema,
   roomViewerQuerySchema,
   startRoomSchema
 } from "./schemas.js";
-import { createRoom, getRoom, joinRoom, startRoom, toRoomSnapshot } from "../services/roomStore.js";
+import { addStroke, clearCanvas, createRoom, getRoom, joinRoom, startRoom, submitGuess, toRoomSnapshot } from "../services/roomStore.js";
 
 export function createRoomsRouter() {
   const router = Router();
@@ -70,6 +73,42 @@ export function createRoomsRouter() {
       const room = startRoom(code.toUpperCase(), participantId);
 
       response.json({ room });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/canvas", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId, stroke } = canvasStrokeSchema.parse(request.body);
+      const strokes = addStroke(code.toUpperCase(), participantId, stroke);
+
+      response.json({ round: { strokes } });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/canvas/clear", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = canvasClearSchema.parse(request.body);
+      const strokes = clearCanvas(code.toUpperCase(), participantId);
+
+      response.json({ round: { strokes } });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/guess", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId, text } = guessSubmissionSchema.parse(request.body);
+      const result = submitGuess(code.toUpperCase(), participantId, text);
+
+      response.json(result);
     } catch (error) {
       next(error);
     }

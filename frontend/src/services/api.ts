@@ -1,6 +1,23 @@
 export type ParticipantRole = "drawer" | "guesser";
 export type RoundStatus = "drawing" | "complete";
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Stroke {
+  points: Point[];
+}
+
+export interface Guess {
+  participantId: string;
+  participantName: string;
+  text: string;
+  isCorrect: boolean;
+  timestamp: string;
+}
+
 export interface Participant {
   id: string;
   name: string;
@@ -12,6 +29,8 @@ export interface RoundSnapshot {
   drawerId: string;
   secretWord: string | null;
   status: RoundStatus;
+  strokes: Stroke[];
+  guesses: Guess[];
 }
 
 export interface RoomSnapshot {
@@ -22,6 +41,7 @@ export interface RoomSnapshot {
   currentRound: RoundSnapshot | null;
   availableWords: string[];
   roles: ParticipantRole[];
+  scores: Record<string, number>;
 }
 
 export interface RoomSessionResponse {
@@ -72,6 +92,24 @@ export const api = {
     return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/start`, {
       method: "POST",
       body: JSON.stringify({ participantId })
+    });
+  },
+  addStroke(code: string, participantId: string, stroke: Stroke) {
+    return request<{ round: { strokes: Stroke[] } }>(`/rooms/${encodeURIComponent(code)}/canvas`, {
+      method: "POST",
+      body: JSON.stringify({ participantId, stroke })
+    });
+  },
+  clearCanvas(code: string, participantId: string) {
+    return request<{ round: { strokes: Stroke[] } }>(`/rooms/${encodeURIComponent(code)}/canvas/clear`, {
+      method: "POST",
+      body: JSON.stringify({ participantId })
+    });
+  },
+  submitGuess(code: string, participantId: string, text: string) {
+    return request<{ guess: Guess; isCorrect: boolean; score: number }>(`/rooms/${encodeURIComponent(code)}/guess`, {
+      method: "POST",
+      body: JSON.stringify({ participantId, text })
     });
   }
 };

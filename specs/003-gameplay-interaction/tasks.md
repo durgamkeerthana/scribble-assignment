@@ -29,10 +29,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T001 Add `Stroke` (point[]), `Guess` (participantId, text, isCorrect, timestamp), and `guesses/strokes/scores` fields to backend models in `backend/src/models/game.ts`
-- [ ] T002 [P] Update `RoundSnapshot` to include `strokes: Stroke[]` and `guesses: Guess[]` in `backend/src/models/game.ts`
-- [ ] T003 [P] Update `RoomSnapshot` to include `scores: Record<string, number>` in `backend/src/models/game.ts`
-- [ ] T004 [P] Add Zod schemas for `strokeSchema`, `guessSubmissionSchema`, `canvasClearSchema` in `backend/src/api/schemas.ts`
+- [X] T001 Add `Stroke` (point[]), `Guess` (participantId, text, isCorrect, timestamp), and `guesses/strokes/scores` fields to backend models in `backend/src/models/game.ts`
+- [X] T002 [P] Update `RoundSnapshot` to include `strokes: Stroke[]` and `guesses: Guess[]` in `backend/src/models/game.ts`
+- [X] T003 [P] Update `RoomSnapshot` to include `scores: Record<string, number>` in `backend/src/models/game.ts`
+- [X] T004 [P] Add Zod schemas for `strokeSchema`, `guessSubmissionSchema`, `canvasClearSchema` in `backend/src/api/schemas.ts`
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 
@@ -46,15 +46,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Implement `addStroke(roomCode, participantId, stroke)` and `clearCanvas(roomCode, participantId)` in `backend/src/services/roomStore.ts` (append to Round.strokes, validate drawer, reset strokes)
-- [ ] T006 [P] [US1] Implement POST `/rooms/:code/canvas` endpoint in `backend/src/api/rooms.ts`
-- [ ] T007 [P] [US1] Implement POST `/rooms/:code/canvas/clear` endpoint in `backend/src/api/rooms.ts`
-- [ ] T008 [US1] Include `strokes` in RoundSnapshot for all viewers (guessers see strokes, drawer sees strokes) in `backend/src/services/roomStore.ts` `toRoomSnapshot()`
-- [ ] T009 [P] [US1] Create `Canvas.tsx` component in `frontend/src/components/Canvas.tsx` (native HTML Canvas API, mouse events for drawing, display-only mode for guessers, Clear button)
-- [ ] T010 [P] [US1] Add `addStroke(roomCode, participantId, stroke)` and `clearCanvas(roomCode, participantId)` API methods in `frontend/src/services/api.ts`
-- [ ] T011 [US1] Add `addStroke` and `clearCanvas` methods to RoomStore in `frontend/src/state/roomStore.ts`
-- [ ] T012 [US1] Wire Canvas into `frontend/src/pages/GamePage.tsx` (drawer gets interactive canvas, guessers get view-only canvas)
-- [ ] T013 [US1] Add canvas-related CSS styles to `frontend/src/styles/app.css`
+- [X] T005 [P] [US1] Implement `addStroke(roomCode, participantId, stroke)` and `clearCanvas(roomCode, participantId)` in `backend/src/services/roomStore.ts` (append to Round.strokes, validate drawer, reset strokes)
+- [X] T006 [P] [US1] Implement POST `/rooms/:code/canvas` endpoint in `backend/src/api/rooms.ts`
+- [X] T007 [P] [US1] Implement POST `/rooms/:code/canvas/clear` endpoint in `backend/src/api/rooms.ts`
+- [X] T008 [US1] Include `strokes` in RoundSnapshot for all viewers (guessers see strokes, drawer sees strokes) in `backend/src/services/roomStore.ts` `toRoomSnapshot()`
+- [X] T009 [P] [US1] Create `Canvas.tsx` component in `frontend/src/components/Canvas.tsx` (native HTML Canvas API, mouse events for drawing, display-only mode for guessers, Clear button)
+- [X] T010 [P] [US1] Add `addStroke(roomCode, participantId, stroke)` and `clearCanvas(roomCode, participantId)` API methods in `frontend/src/services/api.ts`
+- [X] T011 [US1] Add `addStroke` and `clearCanvas` methods to RoomStore in `frontend/src/state/roomStore.ts`
+- [X] T012 [US1] Wire Canvas into `frontend/src/pages/GamePage.tsx` (drawer gets interactive canvas, guessers get view-only canvas)
+- [X] T013 [US1] Add canvas-related CSS styles to `frontend/src/styles/app.css`
 
 **Checkpoint**: US1 fully functional — drawer draws/clears, guessers see synced canvas
 
@@ -68,13 +68,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [P] [US2] Implement `submitGuess(roomCode, participantId, text)` in `backend/src/services/roomStore.ts` (trim, validate non-empty, case-insensitive compare, append to Round.guesses, return isCorrect result)
-- [ ] T015 [US2] Implement POST `/rooms/:code/guess` endpoint in `backend/src/api/rooms.ts`
-- [ ] T016 [US2] Include `guesses` in RoundSnapshot for all viewers in `backend/src/services/roomStore.ts` `toRoomSnapshot()`
-- [ ] T017 [P] [US2] Add `submitGuess(roomCode, participantId, text)` API method in `frontend/src/services/api.ts`
-- [ ] T018 [US2] Add `submitGuess` method to RoomStore in `frontend/src/state/roomStore.ts`
-- [ ] T019 [US2] Update `GuessForm.tsx` in `frontend/src/components/GuessForm.tsx` to call API, reject empty guesses client-side, and display correct/incorrect feedback message
-- [ ] T020 [US2] Wire guess feedback display into `frontend/src/pages/GamePage.tsx`
+- [X] T014 [P] [US2] Implement `submitGuess(roomCode, participantId, text)` in `backend/src/services/roomStore.ts` (trim, validate non-empty, case-insensitive compare, append to Round.guesses, return isCorrect result, update scores)
+- [X] T015 [US2] Implement POST `/rooms/:code/guess` endpoint in `backend/src/api/rooms.ts`
+- [X] T016 [US2] Include `guesses` in RoundSnapshot for all viewers in `backend/src/services/roomStore.ts` `toRoomSnapshot()` — done in T008
+- [X] T017 [P] [US2] Add `submitGuess(roomCode, participantId, text)` API method in `frontend/src/services/api.ts`
+- [X] T018 [US2] Add `submitGuess` method to RoomStore in `frontend/src/state/roomStore.ts`
+- [X] T019 [US2] Update `GuessForm.tsx` in `frontend/src/components/GuessForm.tsx` to call API, reject empty guesses client-side, and display correct/incorrect feedback message
+- [X] T020 [US2] Wire guess feedback display into `frontend/src/pages/GamePage.tsx` — inline in GuessForm
 
 **Checkpoint**: US2 fully functional — guessers submit validated guesses, see correct/incorrect feedback
 
@@ -88,13 +88,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Initialize scores map in `startRoom()` in `backend/src/services/roomStore.ts` (each participant starts at 0)
-- [ ] T022 [US3] Update `submitGuess` in `backend/src/services/roomStore.ts` to increment score (+100) for correct guesses (skip score increment if guesser already correct)
-- [ ] T023 [US3] Include `scores` in RoomSnapshot for all viewers in `backend/src/services/roomStore.ts` `toRoomSnapshot()`
-- [ ] T024 [P] [US3] Update `Scoreboard.tsx` in `frontend/src/components/Scoreboard.tsx` to display real scores from `room.scores` data
-- [ ] T025 [P] [US3] Create `GuessHistory.tsx` component in `frontend/src/components/GuessHistory.tsx` to display ordered guess list (guesser name + guess text + correct/incorrect indicator)
-- [ ] T026 [US3] Wire Scoreboard and GuessHistory into `frontend/src/pages/GamePage.tsx` (replace placeholder Scoreboard, add GuessHistory to activity sidebar)
-- [ ] T027 [US3] Add guess history and scoreboard CSS styles to `frontend/src/styles/app.css`
+- [X] T021 [P] [US3] Initialize scores map in `startRoom()` in `backend/src/services/roomStore.ts` (each participant starts at 0) — done in startRoom update
+- [X] T022 [US3] Update `submitGuess` in `backend/src/services/roomStore.ts` to increment score (+100) for correct guesses (skip score increment if guesser already correct) — done in submitGuess
+- [X] T023 [US3] Include `scores` in RoomSnapshot for all viewers in `backend/src/services/roomStore.ts` `toRoomSnapshot()` — done in toRoomSnapshot
+- [X] T024 [P] [US3] Update `Scoreboard.tsx` in `frontend/src/components/Scoreboard.tsx` to display real scores from `room.scores` data
+- [X] T025 [P] [US3] Create `GuessHistory.tsx` component in `frontend/src/components/GuessHistory.tsx` to display ordered guess list (guesser name + guess text + correct/incorrect indicator)
+- [X] T026 [US3] Wire Scoreboard and GuessHistory into `frontend/src/pages/GamePage.tsx` (replace placeholder Scoreboard, add GuessHistory to activity sidebar)
+- [X] T027 [US3] Add guess history and scoreboard CSS styles to `frontend/src/styles/app.css`
 
 **Checkpoint**: US3 fully functional — scores tracked, guess history and scores visible to all players
 
@@ -104,9 +104,9 @@
 
 **Purpose**: Verification that everything works together
 
-- [ ] T028 [P] Verify backend type checking: `cd backend && npx tsc --noEmit`
-- [ ] T029 [P] Verify frontend type checking: `cd frontend && npx tsc --noEmit`
-- [ ] T030 Run through quickstart manual test scenarios from `specs/003-gameplay-interaction/quickstart.md`
+- [X] T028 [P] Verify backend type checking: `cd backend && npx tsc --noEmit` — PASS
+- [X] T029 [P] Verify frontend type checking: `cd frontend && npx tsc --noEmit` — PASS
+- [X] T030 Run through quickstart manual test scenarios from `specs/003-gameplay-interaction/quickstart.md` — PASS (all endpoints verified)
 
 ---
 

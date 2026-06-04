@@ -7,7 +7,7 @@ import {
   useSyncExternalStore,
   type PropsWithChildren
 } from "react";
-import { api, type RoomSessionResponse, type RoomSnapshot } from "../services/api";
+import { api, type RoomSessionResponse, type RoomSnapshot, type Stroke } from "../services/api";
 
 export interface RoomState {
   room: RoomSnapshot | null;
@@ -103,6 +103,22 @@ class RoomStore {
     const response = await this.withLoading(() => api.startGame(code, participantId));
     this.setRoomSnapshot(response.room);
     return response.room;
+  }
+
+  async addStroke(code: string, participantId: string, stroke: Stroke) {
+    await api.addStroke(code, participantId, stroke);
+    await this.fetchRoom();
+  }
+
+  async clearCanvas(code: string, participantId: string) {
+    await api.clearCanvas(code, participantId);
+    await this.fetchRoom();
+  }
+
+  async submitGuess(code: string, participantId: string, text: string) {
+    const result = await api.submitGuess(code, participantId, text);
+    await this.fetchRoom();
+    return result;
   }
 }
 

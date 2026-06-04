@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Participant, Room, RoomSnapshot, Round } from "../models/game.js";
+import type { Guess, Participant, Room, RoomSnapshot, Round, Stroke } from "../models/game.js";
 import { HttpError } from "../api/schemas.js";
 import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
 
@@ -60,7 +60,8 @@ export function createRoom(playerName?: string) {
     rounds: [],
     currentRoundNumber: 0,
     createdAt: now(),
-    updatedAt: now()
+    updatedAt: now(),
+    scores: {}
   };
 
   rooms.set(room.code, room);
@@ -130,8 +131,12 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
     roundNumber,
     drawerId: room.participants[0].id,
     secretWord: selectWord(roundNumber),
-    status: "drawing"
+    status: "drawing",
+    strokes: [],
+    guesses: []
   };
+
+  room.scores = Object.fromEntries(room.participants.map((p) => [p.id, 0]));
 
   room.rounds.push(round);
   room.currentRoundNumber = roundNumber;
@@ -140,6 +145,107 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
   rooms.set(room.code, room);
 
   return toRoomSnapshot(cloneRoom(room), participantId);
+}
+
+function getActiveRound(room: Room): Round {
+  if (room.status !== "active" || room.rounds.length === 0) {
+    throw new HttpError(400, "No active round");
+  }
+  return room.rounds[room.rounds.length - 1];
+}
+
+export function addStroke(code: string, participantId: string, stroke: Stroke): Stroke[] {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, `Room ${code} not found`);
+  }
+
+  const round = getActiveRound(room);
+
+  if (round.drawerId !== participantId) {
+    throw new HttpError(403, "Only the drawer can draw");
+  }
+
+  round.strokes.push(stroke);
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return [...round.strokes];
+}
+
+export function clearCanvas(code: string, participantId: string): Stroke[] {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, `Room ${code} not found`);
+  }
+
+  const round = getActiveRound(room);
+
+  if (round.drawerId !== participantId) {
+    throw new HttpError(403, "Only the drawer can clear the canvas");
+  }
+
+  round.strokes = [];
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return [];
+}
+
+export function submitGuess(code: string, participantId: string, text: string): { guess: Guess; isCorrect: boolean; score: number } {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, `Room ${code} not found`);
+  }
+
+  const round = getActiveRound(room);
+
+  if (round.drawerId === participantId) {
+    throw new HttpError(403, "The drawer cannot guess");
+  }
+
+  const trimmed = text.trim();
+
+  if (!trimmed) {
+    throw new HttpError(400, "Guess cannot be empty");
+  }
+
+  const participant = room.participants.find((p) => p.id === participantId);
+
+  if (!participant) {
+    throw new HttpError(404, "Participant not found");
+  }
+
+  const isCorrect = trimmed.toLowerCase() === round.secretWord.toLowerCase();
+  const alreadyCorrect = round.guesses.some(
+    (g) => g.participantId === participantId && g.isCorrect
+  );
+
+  const guess: Guess = {
+    participantId,
+    participantName: participant.name,
+    text: trimmed,
+    isCorrect,
+    timestamp: now()
+  };
+
+  round.guesses.push(guess);
+
+  if (isCorrect && !alreadyCorrect) {
+    room.scores[participantId] = (room.scores[participantId] ?? 0) + 100;
+  }
+
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return {
+    guess,
+    isCorrect,
+    score: room.scores[participantId] ?? 0
+  };
 }
 
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
@@ -159,10 +265,13 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
           secretWord: viewerParticipantId === currentRound.drawerId
             ? currentRound.secretWord
             : null,
-          status: currentRound.status
+          status: currentRound.status,
+          strokes: currentRound.strokes,
+          guesses: currentRound.guesses
         }
       : null,
     availableWords: listWords(),
-    roles: [...STARTER_ROLES]
+    roles: [...STARTER_ROLES],
+    scores: { ...room.scores }
   };
 }
