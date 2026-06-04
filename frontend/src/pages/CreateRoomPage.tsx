@@ -14,7 +14,7 @@ export function CreateRoomPage() {
 
     try {
       setError(null);
-      await roomStore.createRoom(playerName);
+      await roomStore.createRoom(playerName.trim());
       navigate("/lobby");
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Unable to create room");

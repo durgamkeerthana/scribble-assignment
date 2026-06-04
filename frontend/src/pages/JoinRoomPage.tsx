@@ -12,10 +12,23 @@ export function JoinRoomPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
+
+    const trimmedCode = roomCode.trim();
+    const trimmedName = playerName.trim();
+
+    if (!trimmedCode) {
+      setError("Room code cannot be empty.");
+      return;
+    }
+
+    if (!trimmedName) {
+      setError("Player name cannot be empty.");
+      return;
+    }
 
     try {
-      setError(null);
-      await roomStore.joinRoom(roomCode.toUpperCase(), playerName);
+      await roomStore.joinRoom(trimmedCode.toUpperCase(), trimmedName);
       navigate("/lobby");
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Unable to join room");

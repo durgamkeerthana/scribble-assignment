@@ -1,50 +1,42 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Scribble Game Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. TypeScript First & Strict Typing
+All code written for both the backend and frontend MUST be fully typed in TypeScript. The use of `any` is strictly prohibited; use `unknown` or specific interfaces instead.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. HTTP Polling Only (No WebSockets)
+To keep the real-time sync mechanism simple and reliable, all client-server synchronization MUST use HTTP polling (e.g., at a ~2s interval). Use of WebSockets, Socket.io, Server-Sent Events, or any other push protocol is strictly forbidden.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. In-Memory State Only (No Databases)
+All room, participant, and game state MUST be stored in-memory on the backend (e.g., using a JavaScript `Map`). No persistent databases (SQL, NoSQL, SQLite, Redis, etc.) are allowed. Room cleanups MUST explicitly remove inactive rooms to avoid stateful bloat.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. No Authentication or Sessions
+Do not implement user authentication, accounts, sessions, JWT, or OAuth. Sessions are identified purely by the `participantId` generated upon room creation or joining.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Fail Fast & Resilient Error Handling
+The backend MUST use centralized error handlers and return clear, descriptive error payloads with appropriate HTTP status codes. The frontend MUST handle API errors gracefully and ensure the UI never crashes on failed API requests.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. Component Cleanliness & Standard CSS
+Frontend React components MUST be functional, use strict React hooks (`useState`, `useEffect`, etc.), and keep business logic separated from presentational structure. Styling MUST reside in `app.css` or CSS modules; utility classes like TailwindCSS are not to be used unless explicitly configured.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Additional Constraints
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- **No Unjustified Dependencies**: Do not add new external libraries or packages without strong justification and approval.
+- **Granular Git Commits**: Maintain clear, descriptive, and incremental commit messages.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+
+1. **Specify**: Update the feature spec with acceptance criteria and edge cases.
+2. **Clarify**: Resolve any architectural or scope ambiguities before coding.
+3. **Plan**: Formulate the state model, file-level modifications, and contract specifications.
+4. **Tasks**: Break down the implementation into discrete, ordered, and testable tasks.
+5. **Implement**: Code incrementally, verifying each task before proceeding.
+6. **Validate**: Perform multi-client browser testing to ensure scenarios work as described.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Complexity and architectural deviations from these principles MUST be explicitly justified in the implementation plan's Complexity Tracking section.
+- Any amendment to these principles requires a minor or major version bump of this constitution.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-06-03 | **Last Amended**: 2026-06-03

@@ -4,9 +4,10 @@ import {
   HttpError,
   joinRoomSchema,
   roomCodeParamsSchema,
-  roomViewerQuerySchema
+  roomViewerQuerySchema,
+  startRoomSchema
 } from "./schemas.js";
-import { createRoom, getRoom, joinRoom, toRoomSnapshot } from "../services/roomStore.js";
+import { createRoom, getRoom, joinRoom, startRoom, toRoomSnapshot } from "../services/roomStore.js";
 
 export function createRoomsRouter() {
   const router = Router();
@@ -32,7 +33,7 @@ export function createRoomsRouter() {
       const result = joinRoom(code.toUpperCase(), playerName);
 
       if (!result) {
-        throw new HttpError(404, "Unable to join room");
+        throw new HttpError(404, `Room ${code.toUpperCase()} not found`);
       }
 
       response.json({
@@ -51,12 +52,24 @@ export function createRoomsRouter() {
       const room = getRoom(code.toUpperCase());
 
       if (!room) {
-        throw new HttpError(404, "Unable to load room");
+        throw new HttpError(404, `Room ${code.toUpperCase()} not found`);
       }
 
       response.json({
         room: toRoomSnapshot(room, participantId)
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/start", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = startRoomSchema.parse(request.body);
+      const room = startRoom(code.toUpperCase(), participantId);
+
+      response.json({ room });
     } catch (error) {
       next(error);
     }
