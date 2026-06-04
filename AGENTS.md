@@ -44,7 +44,7 @@ You are working on a monolithic repository for a multiplayer drawing game ("Scri
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/003-gameplay-interaction/plan.md`
-See also `specs/003-gameplay-interaction/data-model.md` for entity definitions and
-`specs/003-gameplay-interaction/contracts/api.md` for API contracts.
+`specs/004-result-restart/plan.md`
+See also `specs/004-result-restart/data-model.md` for entity definitions and
+`specs/004-result-restart/contracts/api.md` for API contracts.
 <!-- SPECKIT END -->
