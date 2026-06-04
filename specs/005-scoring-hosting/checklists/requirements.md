@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Scoring, Timers, and Host Migration
+# Specification Quality Checklist: Scoring & Results
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-06-04
